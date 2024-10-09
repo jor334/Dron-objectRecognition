@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from ultralytics import YOLO
+import easyocr
 
 # Cargar el modelo YOLO personalizado
 model = YOLO("best.pt")
@@ -19,14 +20,16 @@ while True:
 
     # Iterar sobre cada detección en los resultados
     for result in results:
-        for detection in result.boxes:  # Asegurarse de acceder a las detecciones de forma correcta
+        for detection in result.boxes:  
             # Extraer las coordenadas de la caja delimitadora
             x1, y1, x2, y2 = map(int, detection.xyxy[0])  # Coordenadas (x1, y1) y (x2, y2)
-            
-            # Recortar la región de interés (ROI) para obtener el color
             roi = frame[y1:y2, x1:x2]
+
+            frame = cv2.bilateralFilter(frame, 9, 75, 75)
             
             # Convertir a HSV para detectar el color
+
+            roi = cv2.bilateralFilter(roi, 9, 75, 75)
             hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
             # Calcular el color promedio en la región de interés
@@ -51,16 +54,18 @@ while True:
             else:
                 color = "Otro color"
                 color_bgr = (255, 255, 255)  # Blanco para otros colores
+          
 
-            # Extraer la etiqueta de clase (nombre del objeto)
-            label = detection.cls[0]
-            confidence = detection.conf[0]  # Extraer la confianza de la detección
+            # Extraer la etiqueta 
+            class_id = int(detection.cls[0])
+            label = model.names[class_id]
+            #confidence = detection.conf[0]  # Extraer la confianza de la detección
 
             # Dibujar la caja delimitadora en el color identificado
             cv2.rectangle(frame, (x1, y1), (x2, y2), color_bgr, 2)
         
             # Colocar el nombre del objeto, color y la confianza en la imagen
-            text = f"{label}, color: {color}, confianza: {confidence:.2f}"
+            text = f"{label}, color: {color}"
             cv2.putText(frame, text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_bgr, 2)
 
     # Mostrar la imagen con las detecciones
