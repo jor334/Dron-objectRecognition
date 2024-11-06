@@ -4,7 +4,7 @@ from ultralytics import YOLO
 import easyocr
 
 # Cargar el modelo YOLO personalizado
-model = YOLO("best.pt")
+model = YOLO("models/best.pt")
 
 # Definir los objetivos
 targets = [
